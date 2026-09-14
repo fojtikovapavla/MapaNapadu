@@ -83,12 +83,37 @@
     z-index:1000;
     background:#fff;
     border-radius:10px;
-    padding:10px 14px;
+    padding:0;
     box-shadow:0 2px 8px rgba(0,0,0,0.25);
     font-size:0.8rem;
     max-width:230px;
+    max-height:70vh;
+    overflow-y:auto;
   }
-  .corner-box strong{display:block;margin-bottom:6px;color:var(--green-dark);}
+  .corner-box summary{
+    list-style:none;
+    cursor:pointer;
+    padding:10px 14px;
+    font-weight:700;
+    color:var(--green-dark);
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    user-select:none;
+  }
+  .corner-box summary::-webkit-details-marker{display:none;}
+  .corner-box summary::after{
+    content:"▸";
+    transition:transform 0.15s ease;
+    margin-left:8px;
+  }
+  .corner-box[open] summary::after{
+    transform:rotate(90deg);
+  }
+  .corner-box .box-body{
+    padding:0 14px 12px 14px;
+  }
+  .corner-box .subtitle{display:block;margin:8px 0 4px;color:var(--green-dark);font-weight:700;}
   .corner-box ul{margin:0;padding-left:18px;}
   .corner-box li{margin-bottom:4px;}
   .corner-box .num{
@@ -119,8 +144,10 @@
   Zelené body = naše náměty a projekty pro Rudolfov a Hlinsko. Klikněte na bod pro popis.
 </div>
 
-<div class="corner-box">
-  <strong>Další projekty pro Rudolfov</strong>
+<details class="corner-box">
+  <summary>Další projekty (12)</summary>
+  <div class="box-body">
+  <span class="subtitle">Pro Rudolfov</span>
   <ul>
     <li><span class="num">1</span>Rekonstrukce kanalizace a vodovodu</li>
     <li><span class="num">3</span>Poesiomat</li>
@@ -132,13 +159,14 @@
     <li><span class="num">22</span>Bezpečnostní kamerový systém města</li>
     <li><span class="num">24</span>Modré parkovací zóny – pilotní zavedení</li>
   </ul>
-  <strong style="margin-top:8px;">Další projekty pro Hlinsko</strong>
+  <span class="subtitle">Pro Hlinsko</span>
   <ul>
     <li><span class="num">55</span>Cyklotrasa</li>
     <li><span class="num">56</span>Plakátovací plocha, vývěska</li>
     <li><span class="num">58</span>AED defibrilátor</li>
   </ul>
-</div>
+  </div>
+</details>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
@@ -146,7 +174,9 @@
 // U bodů, které v podkladu nemají přesně určené místo ("místo k upřesnění"),
 // je poloha pouze orientační (approx:true) a lze ji později zpřesnit.
 const points = [
-  {n:2,  lat:48.9975, lng:14.5430, t:"Uvítací tabule – hlavní vjezdy do obce", approx:true},
+  {n:2,  lat:48.9889603, lng:14.5326189, t:"Uvítací tabule – hlavní vjezdy do obce"},
+ {n:2,  lat:48.9861969, lng:14.5461136, t:"Uvítací tabule – hlavní vjezdy do obce"},
+ {n:2,  lat:48.9986731, lng:14.5495039, t:"Uvítací tabule – hlavní vjezdy do obce"},
   {n:4,  lat:48.9910, lng:14.5390, t:"Estetické zástěny kontejnerů na tříděný odpad (více stanovišť v obci)", approx:true},
   {n:5,  lat:48.9908, lng:14.5423, t:"Oprava sochy sv. Jana a okolí – hráz Královského rybníka"},
   {n:6,  lat:48.9906, lng:14.5416, t:"Stupňovité sezení / odpočinkové místo – hráz Královského rybníka"},
