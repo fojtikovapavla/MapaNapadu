@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa nápadů – Společně pro Rudolfov a Hlinsko</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+<style>
+  :root{
+    --green:#4c9a2a;
+    --green-dark:#2f6e17;
+    --pink:#e64a8f;
+    --bg:#f6f7f4;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+  }
+  header{
+    background:linear-gradient(90deg,var(--green-dark),var(--green));
+    color:#fff;
+    padding:14px 18px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  header h1{
+    font-size:1.05rem;
+    margin:0;
+    font-weight:600;
+  }
+  header .badge{
+    background:var(--pink);
+    color:#fff;
+    border-radius:999px;
+    padding:6px 14px;
+    font-weight:700;
+    font-size:0.85rem;
+    white-space:nowrap;
+  }
+  #map{
+    width:100%;
+    height:calc(100vh - 58px);
+  }
+  .legend-box{
+    position:absolute;
+    bottom:14px;
+    left:14px;
+    z-index:1000;
+    background:#fff;
+    border-radius:10px;
+    padding:10px 14px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
+    font-size:0.8rem;
+    max-width:220px;
+  }
+  .legend-box strong{display:block;margin-bottom:4px;color:var(--green-dark);}
+  .num-icon{
+    background:var(--green);
+    color:#fff;
+    border-radius:50%;
+    width:26px;
+    height:26px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    font-size:0.75rem;
+    border:2px solid #fff;
+    box-shadow:0 1px 4px rgba(0,0,0,0.4);
+  }
+  .leaflet-popup-content b{color:var(--green-dark);}
+  .leaflet-popup-content{font-size:0.9rem;line-height:1.35;}
+  .approx-note{color:#888;font-style:italic;font-size:0.78rem;}
+  .corner-box{
+    position:absolute;
+    top:72px;
+    right:14px;
+    z-index:1000;
+    background:#fff;
+    border-radius:10px;
+    padding:10px 14px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.25);
+    font-size:0.8rem;
+    max-width:230px;
+  }
+  .corner-box strong{display:block;margin-bottom:6px;color:var(--green-dark);}
+  .corner-box ul{margin:0;padding-left:18px;}
+  .corner-box li{margin-bottom:4px;}
+  .corner-box .num{
+    display:inline-block;
+    background:var(--green);
+    color:#fff;
+    border-radius:50%;
+    width:18px;
+    height:18px;
+    text-align:center;
+    line-height:18px;
+    font-size:0.7rem;
+    font-weight:700;
+    margin-right:4px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🗺️ Mapa nápadů – Rudolfov a Hlinsko</h1>
+  <span class="badge">R/H · Volte 2</span>
+</header>
+
+<div id="map"></div>
+<div class="legend-box">
+  <strong>Legenda</strong>
+  Zelené body = naše náměty a projekty pro Rudolfov a Hlinsko. Klikněte na bod pro popis.
+</div>
+
+<div class="corner-box">
+  <strong>Další projekty pro Rudolfov</strong>
+  <ul>
+    <li><span class="num">1</span>Rekonstrukce kanalizace a vodovodu</li>
+    <li><span class="num">3</span>Poesiomat</li>
+    <li><span class="num">13</span>Vybudování/oprava kritických úseků chodníků</li>
+    <li><span class="num">15</span>Rozšíření CBkola – nová stanoviště v Hlinsku a Rudolfově</li>
+    <li><span class="num">16</span>Legální graffiti stěna pro mladé umělce</li>
+    <li><span class="num">17</span>Teqballový/ping-pongový stůl pro mladé</li>
+    <li><span class="num">19</span>Chodníky, cyklopruhy a dopravní značení</li>
+    <li><span class="num">22</span>Bezpečnostní kamerový systém města</li>
+    <li><span class="num">24</span>Modré parkovací zóny – pilotní zavedení</li>
+  </ul>
+  <strong style="margin-top:8px;">Další projekty pro Hlinsko</strong>
+  <ul>
+    <li><span class="num">55</span>Cyklotrasa</li>
+    <li><span class="num">56</span>Plakátovací plocha, vývěska</li>
+    <li><span class="num">58</span>AED defibrilátor</li>
+  </ul>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+// Body vychází z podkladového seznamu "Další projekty pro Rudolfov / Hlinsko".
+// U bodů, které v podkladu nemají přesně určené místo ("místo k upřesnění"),
+// je poloha pouze orientační (approx:true) a lze ji později zpřesnit.
+const points = [
+  {n:2,  lat:48.9975, lng:14.5430, t:"Uvítací tabule – hlavní vjezdy do obce", approx:true},
+  {n:4,  lat:48.9910, lng:14.5390, t:"Estetické zástěny kontejnerů na tříděný odpad (více stanovišť v obci)", approx:true},
+  {n:5,  lat:48.9908, lng:14.5423, t:"Oprava sochy sv. Jana a okolí – hráz Královského rybníka"},
+  {n:6,  lat:48.9906, lng:14.5416, t:"Stupňovité sezení / odpočinkové místo – hráz Královského rybníka"},
+  {n:7,  lat:48.9912, lng:14.5410, t:"Koupací molo – Královský rybník"},
+  {n:8,  lat:48.9918, lng:14.5363, t:"Revitalizace okolí parkoviště a sběrného místa – Na Plácku"},
+  {n:9,  lat:48.9975, lng:14.5460, t:"Dokončení revitalizace rybníčku na Vesce a jeho okolí (pumpa, májka, lavičky)", approx:true},
+  {n:10, lat:48.9975, lng:14.5395, t:"Přechod pro chodce – ISŠ cestovního ruchu", approx:true},
+  {n:11, lat:48.9895, lng:14.5400, t:"Květinové záhony – Točna Na Americe, křižovatka Na Plácku–Dlouhá"},
+  {n:12, lat:48.9888, lng:14.5386, t:"Nová výsadba stromů a workout prvky – Hlincohorská (Na Americe)"},
+  {n:14, lat:48.9890, lng:14.5370, t:"Řešení parkování – úsek Rozcestí – Amerika"},
+  {n:18, lat:48.9945, lng:14.5330, t:"Bytová zástavba a rekultivace bývalého vojenského prostoru", approx:true},
+  {n:20, lat:48.9890, lng:14.5427, t:"AED defibrilátor – Na Americe"},
+  {n:21, lat:48.9910, lng:14.5340, t:"Nový chodník Třeboňská ul. (úsek Rozcestí–Zámek)"},
+  {n:23, lat:48.9925, lng:14.5405, t:"Oprava budovy využívané Waldorfskou MŠ", approx:true},
+  {n:25, lat:48.9985, lng:14.5560, t:"Ochrana vodního zdroje Trubky", approx:true},
+  {n:26, lat:48.9928, lng:14.5413, t:"Revitalizace hřiště pod školou (kuličkodráha, workout, ping pong, altán)"},
+  {n:27, lat:48.9955, lng:14.5460, t:"Kruhová lavička kolem lípy svobody", approx:true},
+  {n:51, lat:48.9802, lng:14.5185, t:"Květináče a lavičky – Hlinská ulice"},
+  {n:52, lat:48.9810, lng:14.5200, t:"Zpomalovače / radar", approx:true},
+  {n:53, lat:48.9798, lng:14.5178, t:"Přechod pro chodce", approx:true},
+  {n:54, lat:48.9815, lng:14.5210, t:"Rozšíření hřiště pro starší děti a ping pong", approx:true},
+  {n:57, lat:48.9825, lng:14.5230, t:"Chodník do Starého Vráta k Bille", approx:true},
+];
+
+const map = L.map('map', {scrollWheelZoom:false}).setView([48.9895, 14.5330], 14);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap contributors'
+}).addTo(map);
+
+points.forEach(p=>{
+  const icon = L.divIcon({
+    className:'',
+    html:`<div class="num-icon">${p.n}</div>`,
+    iconSize:[26,26],
+    iconAnchor:[13,13],
+    popupAnchor:[0,-13]
+  });
+  const noteHtml = p.approx ? '<div class="approx-note">poloha orientační</div>' : '';
+  L.marker([p.lat,p.lng], {icon}).addTo(map)
+    .bindPopup(`<b>${p.n}. </b>${p.t}${noteHtml}`);
+});
+</script>
+
+</body>
+</html>
